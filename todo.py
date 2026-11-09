@@ -104,10 +104,10 @@ def main(argv):
         return 0
     if argv in (["list"], ["list", "--open"]):
         for item in load():
-            done = item.get("done", False)
-            if argv == ["list", "--open"] and done:
+            is_done = item.get("done", False)
+            if argv == ["list", "--open"] and is_done:
                 continue
-            marker = "x" if done else " "
+            marker = "x" if is_done else " "
             print(f"{item['id']}. [{marker}] {item['text']}")
         return 0
     if argv and argv[0] == "remove":

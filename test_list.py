@@ -67,6 +67,15 @@ class ListTest(unittest.TestCase):
         self.write_items([{"id": 2, "text": "finished", "done": True}])
         self.assertEqual(self.run_cli("list", "--open"), (0, "", ""))
 
+    def test_done_command_and_list_filter_work_together(self):
+        self.assertEqual(self.run_cli("add", "open task"), (0, "added 1\n", ""))
+        self.assertEqual(self.run_cli("add", "finish me"), (0, "added 2\n", ""))
+        self.assertEqual(self.run_cli("done", "2"), (0, "done 2\n", ""))
+        self.assertEqual(self.run_cli("list"), (
+            0, "1. [ ] open task\n2. [x] finish me\n", ""))
+        self.assertEqual(self.run_cli("list", "--open"), (
+            0, "1. [ ] open task\n", ""))
+
     def test_envelope_listing_preserves_counter_across_processes(self):
         self.file.write_text(json.dumps({
             "items": [{"id": 2, "text": "legacy"},
