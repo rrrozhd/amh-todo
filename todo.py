@@ -38,7 +38,23 @@ def main(argv):
         for item in load():
             print(f"{item['id']}. {item['text']}")
         return 0
-    print("usage: todo.py add TEXT | list", file=sys.stderr)
+    if len(argv) >= 3 and argv[0] == "edit":
+        try:
+            item_id = int(argv[1])
+        except ValueError:
+            pass
+        else:
+            items = load()
+            for item in items:
+                if item["id"] == item_id:
+                    item["text"] = " ".join(argv[2:])
+                    save(items)
+                    print(f"edited {item_id}")
+                    return 0
+            print(f"no item {item_id}", file=sys.stderr)
+            return 1
+    print("usage: todo.py add TEXT | list [--open] | done ID | remove ID | edit ID TEXT",
+          file=sys.stderr)
     return 2
 
 
