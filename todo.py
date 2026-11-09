@@ -34,11 +34,16 @@ def main(argv):
         item = add(" ".join(argv[1:]))
         print(f"added {item['id']}")
         return 0
-    if argv == ["list"]:
+    if argv in (["list"], ["list", "--open"]):
         for item in load():
-            print(f"{item['id']}. {item['text']}")
+            done = item.get("done", False)
+            if argv == ["list", "--open"] and done:
+                continue
+            marker = "x" if done else " "
+            print(f"{item['id']}. [{marker}] {item['text']}")
         return 0
-    print("usage: todo.py add TEXT | list", file=sys.stderr)
+    print("usage: todo.py add TEXT | list [--open] | done ID | remove ID | edit ID TEXT",
+          file=sys.stderr)
     return 2
 
 
