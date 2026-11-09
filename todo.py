@@ -102,9 +102,13 @@ def main(argv):
         item = add(" ".join(argv[1:]))
         print(f"added {item['id']}")
         return 0
-    if argv == ["list"]:
+    if argv in (["list"], ["list", "--open"]):
         for item in load():
-            print(f"{item['id']}. {item['text']}")
+            is_done = item.get("done", False)
+            if argv == ["list", "--open"] and is_done:
+                continue
+            marker = "x" if is_done else " "
+            print(f"{item['id']}. [{marker}] {item['text']}")
         return 0
     if argv and argv[0] == "remove":
         item_id = parse_id(argv[1]) if len(argv) == 2 else None

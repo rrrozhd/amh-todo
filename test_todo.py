@@ -24,7 +24,7 @@ class TodoTest(unittest.TestCase):
     def test_add_then_list(self):
         self.assertEqual(self.run_cli("add", "buy", "milk"), (0, "added 1\n"))
         self.run_cli("add", "call mom")
-        self.assertEqual(self.run_cli("list"), (0, "1. buy milk\n2. call mom\n"))
+        self.assertEqual(self.run_cli("list"), (0, "1. [ ] buy milk\n2. [ ] call mom\n"))
 
     def test_unknown_command_exits_2(self):
         with contextlib.redirect_stderr(io.StringIO()):
