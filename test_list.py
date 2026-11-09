@@ -3,6 +3,8 @@ import io
 import json
 import os
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -64,6 +66,29 @@ class ListTest(unittest.TestCase):
     def test_all_done_items_are_filtered_out(self):
         self.write_items([{"id": 2, "text": "finished", "done": True}])
         self.assertEqual(self.run_cli("list", "--open"), (0, "", ""))
+
+    def test_envelope_listing_preserves_counter_across_processes(self):
+        self.file.write_text(json.dumps({
+            "items": [{"id": 2, "text": "legacy"},
+                      {"id": 4, "text": "finished", "done": True}],
+            "next_id": 11,
+        }, indent=2))
+        before = self.file.read_bytes()
+        script = str(Path(todo.__file__).resolve())
+        for args, expected in [
+            (["list"], "2. [ ] legacy\n4. [x] finished\n"),
+            (["list", "--open"], "2. [ ] legacy\n"),
+        ]:
+            with self.subTest(args=args):
+                result = subprocess.run([sys.executable, script, *args],
+                                        capture_output=True, text=True)
+                self.assertEqual((result.returncode, result.stdout, result.stderr),
+                                 (0, expected, ""))
+                self.assertEqual(self.file.read_bytes(), before)
+        added = subprocess.run([sys.executable, script, "add", "next"],
+                               capture_output=True, text=True)
+        self.assertEqual((added.returncode, added.stdout, added.stderr),
+                         (0, "added 11\n", ""))
 
     def test_unsupported_list_arguments_print_usage_without_writing(self):
         self.write_items([{"id": 1, "text": "retained"}])
