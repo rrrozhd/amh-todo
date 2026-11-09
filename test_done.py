@@ -2,6 +2,8 @@ import contextlib
 import io
 import json
 import os
+import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -68,6 +70,21 @@ class DoneTest(unittest.TestCase):
     def test_unknown_id_echoes_parsed_int(self):
         self.run_cli("add", "a")
         self.assertEqual(self.run_cli("done", "+09"), (1, "", "no item 9\n"))
+
+    def test_done_keeps_next_id_across_fresh_process(self):
+        with open(self.file, "w") as f:
+            json.dump({"items": [{"id": 2, "text": "b"}], "next_id": 7}, f)
+        self.assertEqual(self.run_cli("done", "2"), (0, "done 2\n", ""))
+        with open(self.file) as f:
+            data = json.load(f)
+        self.assertEqual(data["next_id"], 7)
+        self.assertEqual(data["items"], [{"id": 2, "text": "b", "done": True}])
+        script = os.path.join(os.path.dirname(os.path.abspath(todo.__file__)), "todo.py")
+        res = subprocess.run(
+            [sys.executable, script, "add", "c"],
+            capture_output=True, text=True, env=dict(os.environ, TODO_FILE=self.file),
+        )
+        self.assertEqual((res.returncode, res.stdout), (0, "added 7\n"))
 
     def test_bad_usage_exits_2_without_writing(self):
         self.run_cli("add", "a")
