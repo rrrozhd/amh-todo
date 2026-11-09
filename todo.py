@@ -50,6 +50,17 @@ def add(text):
     return item
 
 
+def done(item_id):
+    """Mark item item_id done; return False if there is no such item."""
+    items = load()
+    for item in items:
+        if item["id"] == item_id:
+            item["done"] = True
+            save(items)
+            return True
+    return False
+
+
 def remove(item_id):
     """Delete the item with item_id; return False if there is none."""
     items = load()
@@ -79,6 +90,14 @@ def no_item(item_id):
 
 
 def main(argv):
+    if argv and argv[0] == "done":
+        item_id = parse_id(argv[1]) if len(argv) == 2 else None
+        if item_id is None:
+            return usage()
+        if not done(item_id):
+            return no_item(item_id)
+        print(f"done {item_id}")
+        return 0
     if len(argv) >= 2 and argv[0] == "add":
         item = add(" ".join(argv[1:]))
         print(f"added {item['id']}")
