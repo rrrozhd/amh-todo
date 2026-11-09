@@ -69,6 +69,29 @@ class EditTest(unittest.TestCase):
                          (1, "", "no item 2\n"))
         self.assertFalse(self.file.exists())
 
+    def test_edit_preserves_counter_after_highest_id_removed(self):
+        self.file.write_text(json.dumps([
+            {"id": 2, "text": "old", "done": True},
+            {"id": 9, "text": "remove me"},
+        ]))
+        script = str(Path(todo.__file__).resolve())
+        for args, expected in (
+            (("remove", "9"), "removed 9\n"),
+            (("edit", "2", "new", "text"), "edited 2\n"),
+        ):
+            result = subprocess.run([sys.executable, script, *args],
+                                    capture_output=True, text=True)
+            self.assertEqual((result.returncode, result.stdout, result.stderr),
+                             (0, expected, ""))
+        self.assertEqual(json.loads(self.file.read_text()), {
+            "items": [{"id": 2, "text": "new text", "done": True}],
+            "next_id": 10,
+        })
+        result = subprocess.run([sys.executable, script, "add", "next"],
+                                capture_output=True, text=True)
+        self.assertEqual((result.returncode, result.stdout, result.stderr),
+                         (0, "added 10\n", ""))
+
     def test_wrong_usage_leaves_file_unchanged(self):
         self.file.write_text('[{"id": 7, "text": "keep"}]\n')
         before = self.file.read_bytes()
