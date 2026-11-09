@@ -118,6 +118,18 @@ def main(argv):
             return no_item(item_id)
         print(f"removed {item_id}")
         return 0
+    if argv and argv[0] == "edit":
+        item_id = parse_id(argv[1]) if len(argv) >= 3 else None
+        if item_id is None:
+            return usage()
+        items = load()
+        for item in items:
+            if item["id"] == item_id:
+                item["text"] = " ".join(argv[2:])
+                save(items)
+                print(f"edited {item_id}")
+                return 0
+        return no_item(item_id)
     return usage()
 
 
